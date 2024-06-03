@@ -17,8 +17,8 @@
 - 自機は一台のみです（残機無し）。
 
 ## 動作確認はこちらから
-- [Pyxel Web Launcher](https://kitao.github.io/pyxel/wasm/launcher/?run=Hiekichi.StellarBlazer.StellarBlazer240)
-- [ハンドヘルドゲーム機用(pyxappファイル)](https://github.com/Hiekichi/StellarBlazer/blob/main/StellarBlazer.pyxapp)
+- [Pyxel Web Launcher](https://kitao.github.io/pyxel/wasm/launcher/?run=Hiekichi.StellarBlazer.StellarBlazer240) Webページ上で遊べます
+- [ハンドヘルドゲーム機用(pyxappファイル)](https://github.com/Hiekichi/StellarBlazer/blob/main/StellarBlazer.pyxapp) ダウンロードして実機に入れてください
 
 
 ## その他
