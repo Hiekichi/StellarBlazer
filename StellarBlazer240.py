@@ -225,41 +225,55 @@ class Missile():
 
 class Carrier():
     def __init__(self) -> None:
-        self.x = pyxel.rndi(240,300)
-        self.y = pyxel.rndi(40,160)
+        self.x = pyxel.rndi(240,260)
+        self.y = pyxel.rndi(70,150)
         self.w = 24
         self.h = 9
-        self.dx = pyxel.rndf(-0.2,0.05)
+        self.dx = pyxel.rndf(-1,-0.3)
         self.dy = pyxel.rndf(-0.1,0.1)
-        self.cnt = pyxel.rndi(20,40)
+        self.cnt = pyxel.rndi(20,60)
+        self.release_flag = False
         self.is_active = True
     def update(self):
         self.x += self.dx
         self.y += self.dy
+        self.y = max(20,self.y)
+        self.y = min(self.y,156)
         self.cnt -= 1
         if self.cnt < 0:
             self.dx = pyxel.rndf(-0.2,0.1)
             self.dy = pyxel.rndf(-0.1,0.1)
-            self.cnt = pyxel.rndi(20,40)
-        if self.x < 180:
-            self.dx = pyxel.rndf(0.2,0.6)
+            self.cnt = pyxel.rndi(80,160)
+            self.release_flag = True
+        if self.x < 130:
+            self.dx = pyxel.rndf(0.3,0.6)
             self.dy = pyxel.rndf(-0.1,0.1)
-            self.cnt = pyxel.rndi(60,80)
+            self.cnt = pyxel.rndi(120,210)
     def draw(self):
         pyxel.blt(self.x,self.y, 0, 0,162, self.w,self.h, 0)
 class Balloon():
-    def __init__(self) -> None:
-        self.x = pyxel.rndi(240,300)
-        self.y = pyxel.rndi(40,160)
-        self.dy = pyxel.rndf(-0.1,0.1)
+    def __init__(self,x,y) -> None:
+        self.x = x
+        self.y = y
+        self.dx = pyxel.rndi(-1,0)
+        self.dy = pyxel.rndf(-0.2,0.2)
+        self.w = 9
+        self.h = 9
+        self.cnt = pyxel.rndi(40,80)
         self.is_active = True
     def update(self):
-        self.x -= 4
+        self.x += self.dx
         self.y += self.dy
-        if self.x < -20:
+        self.y = max(10,self.y)
+        self.y = min(self.y,156)
+        self.cnt -= 1
+        if self.cnt < 0:
+            self.dx = pyxel.rndi(-1,0)
+            self.dy = pyxel.rndf(-0.6,0.6)
+        if self.x < -10:
             self.is_active = False
     def draw(self):
-        pyxel.blt(self.x,self.y, 0, 0,122, 16,5, 0)
+        pyxel.blt(self.x,self.y, 0, 0,96, 9,9, 0)
 
 class MyShip():
     def __init__(self,x,y) -> None:
@@ -370,7 +384,7 @@ class App():
             if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
                 self.demomode_flag = False
                 self.gameover_cnt = 0
-                self.stage_num = 0
+                self.stage_num = 2
                 self.init_stage()
                 return
         ### ステージ開始時　まったり登場シーンのカウントダウン
@@ -571,11 +585,36 @@ class App():
                     icbms.remove(icbm)
         ### ステージ3の母艦の生成＆更新と削除
             if len(carriers) < 3:
-                carriers.append(Carrier())
+                if self.stage_cnt > 300:
+                    carriers.append(Carrier())
             for carr in reversed(carriers):
                 carr.update()
+                if carr.release_flag:
+                    balloons.append(Balloon(carr.x-8,carr.y))
+                    carr.release_flag = False
+                ### 自機との当たり判定
+                if self.stageclear_cnt == 0:
+                    if abs((myship.x+12)-(carr.x+12))<24 and abs((myship.y+4)-(carr.y+4))<8:
+                        carr.is_active = False
+                        explo1s.append(Explo1(myship.x+12,myship.y+2))
+                        myship.is_active = False
+                        myship.y = -10000
+                        self.gameover_cnt = 220
                 if carr.is_active == False:
                     carriers.remove(carr)
+        ### ステージ3の風船爆弾の更新と削除
+            for balloon in reversed(balloons):
+                balloon.update()
+                ### 自機との当たり判定
+                if self.stageclear_cnt == 0:
+                    if abs((myship.x+12)-(balloon.x+4))<17 and abs((myship.y+4)-(balloon.y+4))<9:
+                        balloon.is_active = False
+                        explo1s.append(Explo1(myship.x+12,myship.y+2))
+                        myship.is_active = False
+                        myship.y = -10000
+                        self.gameover_cnt = 220
+                if balloon.is_active == False:
+                    balloons.remove(balloon)
         ### ステージ1とステージ3の地上のオブジェクトを生成
         if self.stage_num == 1 or self.stage_num == 3:
             ### 地上のオブジェクトを生成
@@ -606,7 +645,22 @@ class App():
                     explo2s.append(Explo2(missile.x+6,missile.y))
                     missiles.remove(missile)
                     self.score += 80
+                    blaster.is_active = False
                     break
+            for carr in reversed(carriers): ### ブラスターと母艦との当たり判定
+                if abs((carr.x+12)-(blaster.x+10))<20 and abs((carr.y+4)-(blaster.y))<4:
+                    explo2s.append(Explo2(carr.x+6,carr.y))
+                    carriers.remove(carr)
+                    blaster.is_active = False
+                    break
+            for balloon in reversed(balloons): ### ブラスターと風船爆弾との当たり判定
+                if abs((balloon.x+4)-(blaster.x+10))<15 and abs((balloon.y+4)-(blaster.y))<5:
+                    explo2s.append(Explo2(balloon.x,balloon.y))
+                    balloons.remove(balloon)
+                    self.score += 20
+                    blaster.is_active = False
+                    break
+            ### ブラスターの消去
             if blaster.is_active == False:
                 my_blasters.remove(blaster)
         ### 爆弾の更新＆当たり判定
@@ -693,6 +747,9 @@ class App():
         ### ステージ3の母艦の描画
         for carr in reversed(carriers):
             carr.draw()
+        ### ステージ3の風船爆弾の描画
+        for balloon in reversed(balloons):
+            balloon.draw()
         ### ブラスターを描画
         for blaster in reversed(my_blasters):
             blaster.draw()
