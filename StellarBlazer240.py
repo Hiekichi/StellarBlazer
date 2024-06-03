@@ -384,7 +384,7 @@ class App():
             if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
                 self.demomode_flag = False
                 self.gameover_cnt = 0
-                self.stage_num = 2
+                self.stage_num = 0
                 self.init_stage()
                 return
         ### ステージ開始時　まったり登場シーンのカウントダウン
