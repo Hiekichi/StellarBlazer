@@ -10,6 +10,7 @@ LAXIS = [pyxel.GAMEPAD1_AXIS_LEFTY,pyxel.GAMEPAD1_AXIS_LEFTY,
          pyxel.GAMEPAD1_AXIS_LEFTX,pyxel.GAMEPAD1_AXIS_LEFTX]
 LAXIS_RANGE = [[20000,36000],[-36000,-20000],[20000,36000],[-36000,-20000]]
 
+START_STAGE=0
 stars = []
 g_objs = []
 my_blasters = []
@@ -384,7 +385,8 @@ class App():
             if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
                 self.demomode_flag = False
                 self.gameover_cnt = 0
-                self.stage_num = 0
+                self.stage_num = START_STAGE
+                pyxel.play(0,0)
                 self.init_stage()
                 return
         ### ステージ開始時　まったり登場シーンのカウントダウン
@@ -427,6 +429,7 @@ class App():
             ### 自機が地面に激突したかどうかの判定
             if myship.y > 192:
                 myship.is_active = False
+                pyxel.play(2,5)
                 explo1s.append(Explo1(myship.x+12,192))
                 myship.y = -10000
                 self.gameover_cnt = 220
@@ -446,8 +449,10 @@ class App():
                             bomb.dx = 0.4
                         elif myship.dxdy_flags[3]: #左
                             bomb.dx = -2
+                        pyxel.play(0,2)
                         my_bombs.append(bomb)
                 else:
+                    pyxel.play(0,1)
                     my_blasters.append(MyBlaster(myship.x+20,myship.y+4))
         ### 自機の更新
         myship.update()
@@ -460,6 +465,7 @@ class App():
             myship.fuel_flag = False
             myship.y += 0.5
             if myship.y > 192:
+                pyxel.play(2,5)
                 explo1s.append(Explo1(myship.x+12,myship.y+2))
                 myship.is_active = False
                 myship.y = -10000
@@ -483,6 +489,7 @@ class App():
         ### パラシュートの更新
         for para in paras:
             para.update()
+            ### パラシュートと自機との当たり判定
             if para.release_flag == False:
                 if abs((para.x+6)-(myship.x+12)) < 18 and abs((para.y+6)-(myship.y+4)) < 10:
                     para.release_flag = True
@@ -492,6 +499,7 @@ class App():
                         myship.fuel_flag = True
                         myship.is_active = True
                         self.score += 100
+                        pyxel.play(1,4)
             if para.is_active == False:
                 paras.remove(para)
         ### 補給パックの更新
@@ -506,26 +514,32 @@ class App():
                     myship.is_active = True
                     self.score += 100
                 pack.is_active = False
+                pyxel.play(1,4)
             ### 補給パックとレーダーとの当たり判定
             for radar in radars:
                 if abs((pack.x+5)-(radar.x+6)) < 13 and abs((pack.y+3)-(radar.y+6)) < 9:
                     my_bombs.append(MyBomb(radar.x,radar.y,0,0))
+                    pyxel.play(1,3)
             ### 補給パックと戦車との当たり判定
             for tank in tanks:
                 if abs((pack.x+5)-(tank.x+8)) < 13 and abs((pack.y+3)-(tank.y+4)) < 7:
                     my_bombs.append(MyBomb(tank.x,tank.y,0,0))
+                    pyxel.play(1,3)
             ### 補給パックとICBMとの当たり判定
             for icbm in icbms:
                 if abs((pack.x+5)-(icbm.x+6)) < 13 and abs((pack.y+3)-(icbm.y+6)) < 9:
                     my_bombs.append(MyBomb(icbm.x,icbm.y,0,0))
+                    pyxel.play(1,3)
             ### 補給パックと地上物との当たり判定（当たったら補給パックも消しちゃう）
             for obj in g_objs:
                 if abs((pack.x+5)-(obj.x+obj.w/2)) < (5+obj.w/2) and abs((pack.y+3)-(obj.y+obj.h/2)) < (3+obj.h/2):
                     my_bombs.append(MyBomb(obj.x,obj.y,0,0))
                     pack.is_active = False
+                    pyxel.play(1,3)
                     break
             ### 地面にぶつかって爆破する予告など
             if pack.explosion_flag:
+                pyxel.play(2,6)
                 explo2s.append(Explo2(pack.x,192))
             if pack.is_active == False:
                 packs.remove(pack)
@@ -543,6 +557,7 @@ class App():
             ### 自機との当たり判定
             if abs((tank.x+8)-(myship.x+12))<20 and abs((tank.y+4)-(myship.y+4))<8:
                 tank.is_active = False
+                pyxel.play(2,5)
                 explo1s.append(Explo1(myship.x+12,myship.y+2))
                 myship.is_active = False
                 myship.y = -10000
@@ -560,6 +575,7 @@ class App():
                 if self.stageclear_cnt==0:
                     if abs((missile.x+8)-(myship.x+12))<20 and abs((missile.y+4)-(myship.y+4))<8:
                         missile.is_active = False
+                        pyxel.play(2,5)
                         explo1s.append(Explo1(myship.x+12,myship.y+2))
                         myship.is_active = False
                         myship.y = -10000
@@ -609,6 +625,7 @@ class App():
                 if self.stageclear_cnt == 0:
                     if abs((myship.x+12)-(balloon.x+4))<17 and abs((myship.y+4)-(balloon.y+4))<9:
                         balloon.is_active = False
+                        pyxel.play(2,5)
                         explo1s.append(Explo1(myship.x+12,myship.y+2))
                         myship.is_active = False
                         myship.y = -10000
@@ -626,6 +643,7 @@ class App():
                 if self.stageclear_cnt == 0:
                     if abs((obj.x+obj.w/2)-(myship.x+12))<(10+obj.w/2) and abs((obj.y+obj.h/2)-(myship.y+4))<(4+obj.h/2):
                         obj.is_active = False
+                        pyxel.play(2,5)
                         explo1s.append(Explo1(myship.x+12,myship.y+2))
                         myship.is_active = False
                         myship.y = -10000
@@ -642,6 +660,7 @@ class App():
                     packs.append(Pack(para.x+1,para.y+12))
             for missile in missiles: ### ブラスターとミサイルとの当たり判定
                 if abs((missile.x+8)-(blaster.x+10))<13 and abs((missile.y+3)-(blaster.y))<4:
+                    pyxel.play(1,7)
                     explo2s.append(Explo2(missile.x+6,missile.y))
                     missiles.remove(missile)
                     self.score += 80
@@ -649,12 +668,14 @@ class App():
                     break
             for carr in reversed(carriers): ### ブラスターと母艦との当たり判定
                 if abs((carr.x+12)-(blaster.x+10))<20 and abs((carr.y+4)-(blaster.y))<4:
+                    pyxel.play(1,7)
                     explo2s.append(Explo2(carr.x+6,carr.y))
                     carriers.remove(carr)
                     blaster.is_active = False
                     break
             for balloon in reversed(balloons): ### ブラスターと風船爆弾との当たり判定
                 if abs((balloon.x+4)-(blaster.x+10))<15 and abs((balloon.y+4)-(blaster.y))<5:
+                    pyxel.play(1,3)
                     explo2s.append(Explo2(balloon.x,balloon.y))
                     balloons.remove(balloon)
                     self.score += 20
@@ -672,6 +693,7 @@ class App():
                     self.score += obj.score
                     g_objs.remove(obj)
                     bomb.is_active = False
+                    pyxel.play(1,3)
                     break
             for obj in radars: ### 1面のレーダー（破壊出来たら1面クリア！）
                 if abs((obj.x+obj.w/2)-(bomb.x+4))<(obj.w/2+4) and abs((obj.y+obj.h/2)-(bomb.y+4))<(obj.h/2+4):
@@ -679,6 +701,8 @@ class App():
                     bomb.is_active = False
                     myship.is_active = False
                     self.stageclear_cnt = 260
+                    pyxel.play(1,9)
+                    pyxel.playm(0)
             for obj in tanks: ### 2面の戦車（破壊出来たら2面クリア！）
                 if abs((obj.x+8)-(bomb.x+4))<12 and abs((obj.y+4)-(bomb.y+4))<8:
                     tanks.remove(tank)
@@ -686,14 +710,19 @@ class App():
                     bomb.is_active = False
                     myship.is_active = False
                     self.stageclear_cnt = 260
+                    pyxel.play(1,9)
+                    pyxel.playm(0)
             for obj in icbms: ### 3面のICBM（破壊出来たら3面クリア！）
                 if abs((obj.x+obj.w/2)-(bomb.x+4))<(obj.w/2+4) and abs((obj.y+obj.h/2)-(bomb.y+4))<(obj.h/2+4):
                     icbms.remove(obj)
                     bomb.is_active = False
                     myship.is_active = False
                     self.stageclear_cnt = 260
+                    pyxel.play(1,9)
+                    pyxel.playm(0)
 
             if bomb.is_active == False:
+                pyxel.play(2,6)
                 explo2s.append(Explo2(bomb.x+4,192))
                 my_bombs.remove(bomb)
         ### 爆発エフェクトの更新
