@@ -370,7 +370,7 @@ class App():
             if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_START):
                 self.demomode_flag = False
                 self.gameover_cnt = 0
-                self.stage_num = 1
+                self.stage_num = 0
                 self.init_stage()
                 return
         ### ステージ開始時　まったり登場シーンのカウントダウン
@@ -437,6 +437,8 @@ class App():
                     my_blasters.append(MyBlaster(myship.x+20,myship.y+4))
         ### 自機の更新
         myship.update()
+        ### 点数の修正
+        self.score = max(0,self.score)
         ### 燃料不足（FUEL）時の処理
         if self.fuel <= 0:
             self.fuel = 0
@@ -470,11 +472,12 @@ class App():
             if para.release_flag == False:
                 if abs((para.x+6)-(myship.x+12)) < 18 and abs((para.y+6)-(myship.y+4)) < 10:
                     para.release_flag = True
-                    self.fuel = 3000
-                    self.bomb = 30
-                    myship.fuel_flag = True
                     if self.demomode_flag == False:
+                        self.fuel = 3000
+                        self.bomb = 30
+                        myship.fuel_flag = True
                         myship.is_active = True
+                        self.score += 100
             if para.is_active == False:
                 paras.remove(para)
         ### 補給パックの更新
@@ -482,11 +485,12 @@ class App():
             pack.update()
             ### 補給パックと自機との当たり判定
             if abs((pack.x+5)-(myship.x+12)) < 18 and abs((pack.y+3)-(myship.y+4)) < 7:
-                self.fuel = 3000
-                self.bomb = 30
-                myship.fuel_flag = True
                 if self.demomode_flag == False:
+                    self.fuel = 3000
+                    self.bomb = 30
+                    myship.fuel_flag = True
                     myship.is_active = True
+                    self.score += 100
                 pack.is_active = False
             ### 補給パックとレーダーとの当たり判定
             for radar in radars:
@@ -500,6 +504,13 @@ class App():
             for icbm in icbms:
                 if abs((pack.x+5)-(icbm.x+6)) < 13 and abs((pack.y+3)-(icbm.y+6)) < 9:
                     my_bombs.append(MyBomb(icbm.x,icbm.y,0,0))
+            ### 補給パックと地上物との当たり判定（当たったら補給パックも消しちゃう）
+            for obj in g_objs:
+                if abs((pack.x+5)-(obj.x+obj.w/2)) < (5+obj.w/2) and abs((pack.y+3)-(obj.y+obj.h/2)) < (3+obj.h/2):
+                    my_bombs.append(MyBomb(obj.x,obj.y,0,0))
+                    pack.is_active = False
+                    break
+            ### 地面にぶつかって爆破する予告など
             if pack.explosion_flag:
                 explo2s.append(Explo2(pack.x,192))
             if pack.is_active == False:
@@ -594,6 +605,8 @@ class App():
                 if abs((missile.x+8)-(blaster.x+10))<13 and abs((missile.y+3)-(blaster.y))<4:
                     explo2s.append(Explo2(missile.x+6,missile.y))
                     missiles.remove(missile)
+                    self.score += 80
+                    break
             if blaster.is_active == False:
                 my_blasters.remove(blaster)
         ### 爆弾の更新＆当たり判定
@@ -605,6 +618,7 @@ class App():
                     self.score += obj.score
                     g_objs.remove(obj)
                     bomb.is_active = False
+                    break
             for obj in radars: ### 1面のレーダー（破壊出来たら1面クリア！）
                 if abs((obj.x+obj.w/2)-(bomb.x+4))<(obj.w/2+4) and abs((obj.y+obj.h/2)-(bomb.y+4))<(obj.h/2+4):
                     radars.remove(obj)
@@ -614,10 +628,11 @@ class App():
             for obj in tanks: ### 2面の戦車（破壊出来たら2面クリア！）
                 if abs((obj.x+8)-(bomb.x+4))<12 and abs((obj.y+4)-(bomb.y+4))<8:
                     tanks.remove(tank)
+                    self.score += 300
                     bomb.is_active = False
                     myship.is_active = False
                     self.stageclear_cnt = 260
-            for obj in icbms: ### 3面のレーダー（破壊出来たら3面クリア！）
+            for obj in icbms: ### 3面のICBM（破壊出来たら3面クリア！）
                 if abs((obj.x+obj.w/2)-(bomb.x+4))<(obj.w/2+4) and abs((obj.y+obj.h/2)-(bomb.y+4))<(obj.h/2+4):
                     icbms.remove(obj)
                     bomb.is_active = False
