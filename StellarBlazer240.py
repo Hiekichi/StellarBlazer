@@ -668,7 +668,7 @@ class App():
             bomb.update()
             ###当たり判定
             for obj in reversed(g_objs): ### 地上オブジェクトとの当たり判定
-                if abs((obj.x+obj.w/2)-(bomb.x+4))<(obj.w/2+4) and abs((obj.y+obj.h/2)-(bomb.y+4))<(obj.h/2+4):
+                if abs((obj.x+obj.w/2)-(bomb.x+4))<(obj.w/2+4) and abs((obj.y+obj.h/2)-(bomb.y+4))<(obj.h/2):
                     self.score += obj.score
                     g_objs.remove(obj)
                     bomb.is_active = False
