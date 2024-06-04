@@ -310,7 +310,7 @@ class Tank():
         self.dash_cnt = 0
     def update(self):
         global myship
-        if myship.x+16 < self.x:
+        if myship.x+21 < self.x:
             self.x -= 1
         else:
             self.x += 2
